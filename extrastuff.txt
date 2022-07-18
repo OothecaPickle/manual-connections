@@ -1,0 +1,17 @@
+# use boringtun instead of wireguard-go
+export WG_QUICK_USERSPACE_IMPLEMENTATION=boringtun-cli WG_SUDO=1
+# get pia token
+if [ -s "/usr/local/pia/token" ]; then export PIA_TOKEN=$(head -1 /usr/local/pia/token); fi
+# get pia ca_vancouver wg ip
+pia-setregion() { echo -n $(PREFERRED_REGION="$1" pia-getregion | tail -n1) ;}
+export $(pia-setregion ca_vancouver)
+pia-connect() {
+    if [ -z "$1" ]; then env $(pia-setregion ca_vancouver) pia-wireguard ;
+    elif [ $1 == "-ip" ]; then env WG_SERVER_IP=$2 pia-wireguard ;
+    else env $(pia-setregion $1) pia-wireguard ; fi
+}
+alias pia-down="wg-quick down pia"
+pia-refresh-token() {
+    PIA_USER=[redacted] PIA_PASS=[redacted] pia-gettoken
+    export PIA_TOKEN=$(head -1 /usr/local/pia/token)
+}

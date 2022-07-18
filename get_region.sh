@@ -77,15 +77,15 @@ if [[ -t 1 ]]; then
 fi
 
 # Only allow script to run as root
-if (( EUID != 0 )); then
-  echo -e "${red}This script needs to be run as root. Try again with 'sudo $0'${nc}"
-  exit 1
-fi
+#if (( EUID != 0 )); then
+#  echo -e "${red}This script needs to be run as root. Try again with 'sudo $0'${nc}"
+#  exit 1
+#fi
 
-mkdir -p /opt/piavpn-manual
+#mkdir -p /opt/piavpn-manual
 # Erase old latencyList file
-rm -f /opt/piavpn-manual/latencyList
-touch /opt/piavpn-manual/latencyList
+#rm -f /opt/piavpn-manual/latencyList
+#touch /opt/piavpn-manual/latencyList
 
 # This allows you to set the maximum allowed latency in seconds.
 # All servers that respond slower than this will be ignored.
@@ -113,10 +113,10 @@ printServerLatency() {
     echo "$time $regionID $serverIP"
     # Write a list of servers with acceptable latency
     # to /opt/piavpn-manual/latencyList
-    echo -e "$time" "$regionID"'\t'"$serverIP"'\t'"$regionName" >> /opt/piavpn-manual/latencyList
+    #echo -e "$time" "$regionID"'\t'"$serverIP"'\t'"$regionName" >> /opt/piavpn-manual/latencyList
   fi
   # Sort the latencyList, ordered by latency
-  sort -no /opt/piavpn-manual/latencyList /opt/piavpn-manual/latencyList
+  #sort -no /opt/piavpn-manual/latencyList /opt/piavpn-manual/latencyList
 }
 export -f printServerLatency
 
@@ -210,6 +210,7 @@ WireGuard     $bestServer_WG_IP\t-     $bestServer_WG_hostname
 OpenVPN TCP   $bestServer_OT_IP\t-     $bestServer_OT_hostname
 OpenVPN UDP   $bestServer_OU_IP\t-     $bestServer_OU_hostname
 ${nc}"
+echo -n "WG_SERVER_IP=$bestServer_WG_IP"
 fi
 
 # The script will check for an authentication token, and use it if present
@@ -225,9 +226,9 @@ if [[ -z $PIA_TOKEN ]]; then
   PIA_TOKEN=$( awk 'NR == 1' /opt/piavpn-manual/token )
   export PIA_TOKEN
   rm -f /opt/piavpn-manual/token
-else
-  echo -e "Using existing token ${green}$PIA_TOKEN${nc}."
-  echo
+#else
+  #echo -e "Using existing token ${green}$PIA_TOKEN${nc}."
+  #echo
 fi
 
 # Connect with WireGuard and clear authentication token file and latencyList

@@ -32,11 +32,17 @@ check_tool() {
 check_tool curl
 check_tool jq
 
+if [[ -s ~/pia_pf_payload_and_signature ]];then
+  PAYLOAD_AND_SIGNATURE=$(< ~/pia_pf_payload_and_signature)
+  if [[ -z $USINGWG ]];then
+    PF_GATEWAY=$(netstat -nr | grep '^0/1' | tr -s " " | cut -f2 -d " ")
+  fi
+fi
+
 # Check if the mandatory environment variables are set.
-if [[ -z $PF_GATEWAY || -z $PIA_TOKEN || -z $PF_HOSTNAME ]]; then
-  echo "This script requires 3 env vars:"
+if [[ -z $PF_GATEWAY ]] || [[ -z $PIA_TOKEN && -z $PAYLOAD_AND_SIGNATURE ]]; then
+  echo "This script requires 2 env vars:"
   echo "PF_GATEWAY  - the IP of your gateway"
-  echo "PF_HOSTNAME - name of the host used for SSL/TLS certificate verification"
   echo "PIA_TOKEN   - the token you use to connect to the vpn services"
   echo
   echo "An easy solution is to just run get_region_and_token.sh"
@@ -83,11 +89,10 @@ fi
 if [[ -z $PAYLOAD_AND_SIGNATURE ]]; then
   echo
   echo -n "Getting new signature... "
-  payload_and_signature="$(curl -s -m 5 \
-    --connect-to "$PF_HOSTNAME::$PF_GATEWAY:" \
-    --cacert "ca.rsa.4096.crt" \
+  payload_and_signature="$(curl -ks -m 5 \
     -G --data-urlencode "token=${PIA_TOKEN}" \
-    "https://${PF_HOSTNAME}:19999/getSignature")"
+    "https://${PF_GATEWAY}:19999/getSignature")"
+  echo -n $payload_and_signature > ~/pia_pf_payload_and_signature
 else
   payload_and_signature=$PAYLOAD_AND_SIGNATURE
   echo -n "Checking the payload_and_signature from the env var... "
@@ -130,12 +135,10 @@ Trying to bind the port... "
 # alive. The servers have no mechanism to track your activity, so they
 # will just delete the port forwarding if you don't send keepalives.
 while true; do
-  bind_port_response="$(curl -Gs -m 5 \
-    --connect-to "$PF_HOSTNAME::$PF_GATEWAY:" \
-    --cacert "ca.rsa.4096.crt" \
+  bind_port_response="$(curl -Gks -m 5 \
     --data-urlencode "payload=${payload}" \
     --data-urlencode "signature=${signature}" \
-    "https://${PF_HOSTNAME}:19999/bindPort")"
+    "https://${PF_GATEWAY}:19999/bindPort")"
     echo -e "${green}OK!${nc}"
 
     # If port did not bind, just exit the script.

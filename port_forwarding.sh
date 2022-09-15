@@ -93,6 +93,7 @@ if [[ -z $PAYLOAD_AND_SIGNATURE ]]; then
     -G --data-urlencode "token=${PIA_TOKEN}" \
     "https://${PF_GATEWAY}:19999/getSignature")"
   echo -n $payload_and_signature > ~/pia_pf_payload_and_signature
+  chflags hidden ~/pia_pf_payload_and_signature
 else
   payload_and_signature=$PAYLOAD_AND_SIGNATURE
   echo -n "Checking the payload_and_signature from the env var... "
